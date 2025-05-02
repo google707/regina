@@ -1,44 +1,288 @@
-<!DOCTYPE html>
+'<!DOCTYPE html>
+
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Deposito Exness</title>
+  <title>Depesito Exness</title>
   <style>
-    /* ... (o CSS permanece o mesmo) ... */
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #0b0e11;
+      font-family: 'Segoe UI', Roboto, sans-serif;
+      color: #eaecef;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+```
+.container {
+  background: #181a20;
+  border-radius: 16px;
+  box-shadow: 0 0 12px rgba(252, 213, 53, 0.1);
+  width: 92%;
+  max-width: 500px;
+  padding: 24px;
+  text-align: center;
+}
+
+.logo {
+  width: 70px;
+  margin-bottom: 15px;
+}
+
+h1 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #fcd535;
+  margin-bottom: 5px;
+}
+
+.info {
+  font-size: 0.95rem;
+  color: #a1a7bb;
+  margin-bottom: 20px;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+label {
+  text-align: left;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: #f0f0f0;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="tel"] {
+  padding: 12px;
+  font-size: 1rem;
+  border-radius: 10px;
+  border: 1px solid #2b3139;
+  background-color: #0e1117;
+  color: #fff;
+  outline: none;
+}
+
+input::placeholder {
+  color: #777;
+}
+
+.result {
+  font-size: 0.95rem;
+  margin: 5px 0;
+  color: #ccc;
+}
+
+.error {
+  color: #ff4d4d;
+  font-size: 0.9rem;
+}
+
+.payment-note {
+  font-size: 0.85rem;
+  color: #aaa;
+  margin-top: 10px;
+}
+
+input[type="submit"] {
+  background: #fcd535;
+  color: #181a20;
+  font-weight: bold;
+  font-size: 1rem;
+  border: none;
+  border-radius: 10px;
+  padding: 14px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+input[type="submit"]:hover {
+  background: #e5c100;
+}
+
+#responseMessage {
+  margin-top: 15px;
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+@media screen and (max-width: 480px) {
+  h1 {
+    font-size: 1.3rem;
+  }
+
+  .logo {
+    width: 60px;
+  }
+
+  .container {
+    padding: 18px 16px;
+  }
+}
+```
+
   </style>
 </head>
 <body>
   <div class="container">
+    <img src="drv.png?v=026" alt="Logo Binance" class="logo" />
     <h1>Deposito Exness</h1>
     <div class="info">Deposito minimo: US$ 5</div>
     <form id="depositForm">
       <label for="nome">Nome:</label>
       <input type="text" id="nome" name="nome" placeholder="Digite seu nome" required />
 
-      <label for="cr">ID do usuario ou E-mail:</label>
-      <input type="text" id="cr" name="cr" placeholder="Ex: 123456 ou seu@email.com" required />
+```
+  <label for="cr">ID do usuario ou E-mail:</label>
+  <input type="text" id="cr" name="cr" placeholder="Ex: 123456 ou seu@email.com" required />
 
-      <label for="telefone">Numero (e-mola / M-Pesa):</label>
-      <input type="tel" id="telefone" name="telefone" placeholder="Ex: 861234567" required />
+  <label for="telefone">Numero (e-mola / M-Pesa):</label>
+  <input type="tel" id="telefone" name="telefone" placeholder="Ex: 861234567" required />
 
-      <label for="dolar">Valor em dolares (minimo 5):</label>
-      <input type="number" id="dolar" name="dolar" min="5" step="any" placeholder="Ex: 10" required />
+  <label for="dolar">Valor em dolares (minimo 5):</label>
+  <input type="number" id="dolar" name="dolar" min="5" step="any" placeholder="Ex: 10" required />
 
-      <div class="result" id="mtResult">Valor em Meticais: 0 MT</div>
+  <div class="result" id="mtResult">Valor em Meticais: 0 MT</div>
 
-      <input type="submit" value="Efetuar Deposito" />
-    </form>
+  <input type="submit" value="Efetuar Deposito" />
+</form>
 
-    <div class="payment-note">
-      Pagamentos via <strong>M-Pesa</strong> e <strong>e-Mola</strong> sao aceitos.
-    </div>
+<div class="payment-note">
+  Pagamentos via <strong>M-Pesa</strong> e <strong>e-Mola</strong> sao aceitos.
+</div>
 
-    <div id="responseMessage"></div>
+<div id="responseMessage"></div>
+```
+
   </div>
 
   <script>
-    // ... (o JavaScript permanece o mesmo)
+    const exchangeRate = 75;
+    const dolarInput = document.getElementById('dolar');
+    const mtResult = document.getElementById('mtResult');
+    const depositForm = document.getElementById('depositForm');
+    const responseMessage = document.getElementById('responseMessage');
+
+    let formData = {};
+
+    dolarInput.addEventListener('input', function () {
+      const dollars = parseFloat(this.value);
+      if (isNaN(dollars)) {
+        mtResult.textContent = 'Valor em Meticais: 0 MT';
+        return;
+      }
+      if (dollars < 5) {
+        mtResult.innerHTML = '<span class="error">Deposito minimo e de US$ 5</span>';
+      } else {
+        const meticais = dollars * exchangeRate;
+        mtResult.textContent = 'Valor em Meticais: ' + meticais.toFixed(2) + ' MT';
+      }
+    });
+
+    function validarTelefone(numero) {
+      const num = numero.trim();
+      if (!/^\d{9}$/.test(num)) {
+        return { valido: false, mensagem: 'Numero invalido: 9 digitos exigidos.' };
+      }
+      const prefix = num.substring(0, 2);
+      if (['86', '87'].includes(prefix)) return { valido: true, tipo: 'e-mola' };
+      if (['84', '85'].includes(prefix)) return { valido: true, tipo: 'M-Pesa' };
+      return { valido: false, mensagem: 'Prefixo invalido. Use 86/87 ou 84/85.' };
+    }
+
+    depositForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      responseMessage.textContent = '';
+
+      const nome = document.getElementById('nome').value.trim();
+      const cr = document.getElementById('cr').value.trim();
+      const telefone = document.getElementById('telefone').value.trim();
+      const dollars = parseFloat(document.getElementById('dolar').value);
+
+      if (!nome || !cr || !telefone || isNaN(dollars)) {
+        responseMessage.innerHTML = '<span class="error">Preencha todos os campos corretamente.</span>';
+        return;
+      }
+
+      if (dollars < 5) {
+        responseMessage.innerHTML = '<span class="error">Deposito minimo e de US$ 5.</span>';
+        return;
+      }
+
+      const validacaoTel = validarTelefone(telefone);
+      if (!validacaoTel.valido) {
+        responseMessage.innerHTML = '<span class="error">' + validacaoTel.mensagem + '</span>';
+        return;
+      }
+
+      const meticais = (dollars * exchangeRate).toFixed(2);
+      formData = {
+        nome, cr, telefone,
+        tipoPagamento: validacaoTel.tipo,
+        dollars,
+        meticais
+      };
+
+      efetuarPagamento();
+    });
+
+    function efetuarPagamento() {
+      responseMessage.textContent = 'Processando pagamento...';
+
+      const carteira = '1745492646950x913670938561085400';
+      const payload = {
+        carteira: carteira,
+        numero: formData.telefone,
+        "quem comprou": formData.nome,
+        valor: formData.meticais
+      };
+
+      let endpoint = '';
+      if (formData.tipoPagamento === 'e-mola') {
+        endpoint = 'https://mozpayment.co.mz/api/1.1/wf/pagamentorotativoemola';
+      } else if (formData.tipoPagamento === 'M-Pesa') {
+        endpoint = 'https://mozpayment.co.mz/api/1.1/wf/pagamentorotativompesa';
+      }
+
+      fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      .then(response => {
+        if (formData.tipoPagamento === 'M-Pesa') {
+          if (response.status === 200) {
+            responseMessage.textContent = 'Pagamento via M-Pesa concluido com sucesso!';
+          } else {
+            responseMessage.innerHTML = '<span class="error">Erro M-Pesa: Codigo ' + response.status + '</span>';
+          }
+        } else {
+          return response.json().then(data => {
+            if (data.success === 'yes') {
+              responseMessage.textContent = 'Pagamento via e-mola concluido com sucesso!';
+            } else {
+              responseMessage.innerHTML = '<span class="error">Erro e-mola: pagamento nao realizado.</span>';
+            }
+          });
+        }
+      })
+      .catch(error => {
+        responseMessage.innerHTML = '<span class="error">Erro de conexao: ' + error + '</span>';
+      });
+    }
   </script>
+
 </body>
 </html>
+
+so remove o logo ou imagem deixando sem nada em cima
