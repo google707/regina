@@ -1,9 +1,9 @@
-'<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Dep�sito Binance</title>
+  <title>Depesito Exness</title>
   <style>
     body {
       margin: 0;
@@ -25,11 +25,6 @@
       max-width: 500px;
       padding: 24px;
       text-align: center;
-    }
-
-    .logo {
-      width: 70px;
-      margin-bottom: 15px;
     }
 
     h1 {
@@ -119,10 +114,6 @@
         font-size: 1.3rem;
       }
 
-      .logo {
-        width: 60px;
-      }
-
       .container {
         padding: 18px 16px;
       }
@@ -131,36 +122,35 @@
 </head>
 <body>
   <div class="container">
-    <img src="drv.png?v=026" alt="Logo Binance" class="logo" />
-    <h1>Dep�sito Binance</h1>
-    <div class="info">Dep�sito m�nimo: US$ 5</div>
+    <h1>Deposito Binance</h1>
+    <div class="info">Deposito minimo: US$ 5</div>
     <form id="depositForm">
       <label for="nome">Nome:</label>
       <input type="text" id="nome" name="nome" placeholder="Digite seu nome" required />
 
-      <label for="cr">ID do usu�rio ou E-mail:</label>
+      <label for="cr">ID do usuario ou E-mail:</label>
       <input type="text" id="cr" name="cr" placeholder="Ex: 123456 ou seu@email.com" required />
 
-      <label for="telefone">N�mero (e-mola / M-Pesa):</label>
+      <label for="telefone">Numero (e-mola / M-Pesa):</label>
       <input type="tel" id="telefone" name="telefone" placeholder="Ex: 861234567" required />
 
-      <label for="dolar">Valor em d�lares (m�nimo 5):</label>
+      <label for="dolar">Valor em dolares (minimo 5):</label>
       <input type="number" id="dolar" name="dolar" min="5" step="any" placeholder="Ex: 10" required />
 
       <div class="result" id="mtResult">Valor em Meticais: 0 MT</div>
 
-      <input type="submit" value="Efetuar Dep�sito" />
+      <input type="submit" value="Efetuar Deposito" />
     </form>
 
     <div class="payment-note">
-      Pagamentos via <strong>M-Pesa</strong> e <strong>e-Mola</strong> s�o aceitos.
+      Pagamentos via <strong>M-Pesa</strong> e <strong>e-Mola</strong> sao aceitos.
     </div>
 
     <div id="responseMessage"></div>
   </div>
 
   <script>
-    const exchangeRate = 70;
+    const exchangeRate = 75;
     const dolarInput = document.getElementById('dolar');
     const mtResult = document.getElementById('mtResult');
     const depositForm = document.getElementById('depositForm');
@@ -175,7 +165,7 @@
         return;
       }
       if (dollars < 5) {
-        mtResult.innerHTML = '<span class="error">Dep�sito m�nimo � de US$ 5</span>';
+        mtResult.innerHTML = '<span class="error">Deposito minimo e de US$ 5</span>';
       } else {
         const meticais = dollars * exchangeRate;
         mtResult.textContent = 'Valor em Meticais: ' + meticais.toFixed(2) + ' MT';
@@ -185,12 +175,12 @@
     function validarTelefone(numero) {
       const num = numero.trim();
       if (!/^\d{9}$/.test(num)) {
-        return { valido: false, mensagem: 'N�mero inv�lido: 9 d�gitos exigidos.' };
+        return { valido: false, mensagem: 'Numero invalido: 9 digitos exigidos.' };
       }
       const prefix = num.substring(0, 2);
       if (['86', '87'].includes(prefix)) return { valido: true, tipo: 'e-mola' };
       if (['84', '85'].includes(prefix)) return { valido: true, tipo: 'M-Pesa' };
-      return { valido: false, mensagem: 'Prefixo inv�lido. Use 86/87 ou 84/85.' };
+      return { valido: false, mensagem: 'Prefixo invalido. Use 86/87 ou 84/85.' };
     }
 
     depositForm.addEventListener('submit', function (e) {
@@ -208,7 +198,7 @@
       }
 
       if (dollars < 5) {
-        responseMessage.innerHTML = '<span class="error">Dep�sito m�nimo � de US$ 5.</span>';
+        responseMessage.innerHTML = '<span class="error">Deposito minimo e de US$ 5.</span>';
         return;
       }
 
@@ -232,7 +222,7 @@
     function efetuarPagamento() {
       responseMessage.textContent = 'Processando pagamento...';
 
-      const carteira = '1741243147134x615195806040850400';
+      const carteira = '1745492646950x913670938561085400';
       const payload = {
         carteira: carteira,
         numero: formData.telefone,
@@ -255,22 +245,22 @@
       .then(response => {
         if (formData.tipoPagamento === 'M-Pesa') {
           if (response.status === 200) {
-            responseMessage.textContent = 'Pagamento via M-Pesa conclu�do com sucesso!';
+            responseMessage.textContent = 'Pagamento via M-Pesa concluido com sucesso!';
           } else {
-            responseMessage.innerHTML = '<span class="error">Erro M-Pesa: C�digo ' + response.status + '</span>';
+            responseMessage.innerHTML = '<span class="error">Erro M-Pesa: Codigo ' + response.status + '</span>';
           }
         } else {
           return response.json().then(data => {
             if (data.success === 'yes') {
-              responseMessage.textContent = 'Pagamento via e-mola conclu�do com sucesso!';
+              responseMessage.textContent = 'Pagamento via e-mola concluido com sucesso!';
             } else {
-              responseMessage.innerHTML = '<span class="error">Erro e-mola: pagamento n�o realizado.</span>';
+              responseMessage.innerHTML = '<span class="error">Erro e-mola: pagamento nao realizado.</span>';
             }
           });
         }
       })
       .catch(error => {
-        responseMessage.innerHTML = '<span class="error">Erro de conex�o: ' + error + '</span>';
+        responseMessage.innerHTML = '<span class="error">Erro de conexao: ' + error + '</span>';
       });
     }
   </script>
