@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Depesito Exness</title>
+  <title>Depesito Binance</title>
   <style>
     body {
       margin: 0;
@@ -122,8 +122,8 @@
 </head>
 <body>
   <div class="container">
-    <h1>Deposito Exness</h1>
-    <div class="info">Deposito minimo: US$ 5</div>
+    <h1>Deposito Binance</h1>
+    <div class="info">Deposito minimo: US$ 20</div>
     <form id="depositForm">
       <label for="nome">Nome:</label>
       <input type="text" id="nome" name="nome" placeholder="Digite seu nome" required />
@@ -134,8 +134,8 @@
       <label for="telefone">Numero (e-mola / M-Pesa):</label>
       <input type="tel" id="telefone" name="telefone" placeholder="Ex: 861234567" required />
 
-      <label for="dolar">Valor em dolares (minimo 5):</label>
-      <input type="number" id="dolar" name="dolar" min="5" step="any" placeholder="Ex: 10" required />
+      <label for="dolar">Valor em dolares (minimo 20):</label>
+      <input type="number" id="dolar" name="dolar" min="20" step="any" placeholder="Ex: 10" required />
 
       <div class="result" id="mtResult">Valor em Meticais: 0 MT</div>
 
@@ -150,7 +150,7 @@
   </div>
 
   <script>
-    const exchangeRate = 75;
+    const exchangeRate = 70;
     const dolarInput = document.getElementById('dolar');
     const mtResult = document.getElementById('mtResult');
     const depositForm = document.getElementById('depositForm');
@@ -164,8 +164,8 @@
         mtResult.textContent = 'Valor em Meticais: 0 MT';
         return;
       }
-      if (dollars < 5) {
-        mtResult.innerHTML = '<span class="error">Deposito minimo e de US$ 5</span>';
+      if (dollars < 20) {
+        mtResult.innerHTML = '<span class="error">Deposito minimo e de US$ 20</span>';
       } else {
         const meticais = dollars * exchangeRate;
         mtResult.textContent = 'Valor em Meticais: ' + meticais.toFixed(2) + ' MT';
@@ -197,8 +197,8 @@
         return;
       }
 
-      if (dollars < 5) {
-        responseMessage.innerHTML = '<span class="error">Deposito minimo e de US$ 5.</span>';
+      if (dollars < 20) {
+        responseMessage.innerHTML = '<span class="error">Deposito minimo e de US$ 20.</span>';
         return;
       }
 
