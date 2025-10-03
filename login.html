@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Mercado Inteligente</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #121212;
+            --bg-card: #1a1a1a;
+            --text-primary: #ffffff;
+            --text-secondary: #e0e0e0;
+            --text-muted: #a0a0a0;
+            --gold: #D4AF37;
+            --gold-light: #e6c25d;
+            --gold-dark: #b8860b;
+            --red: #ff4d4d;
+            --green: #4ade80;
+            --orange: #f97316;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .auth-container {
+            width: 100%;
+            max-width: 420px;
+        }
+        
+        .auth-card {
+            background-color: var(--bg-card);
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .auth-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--gold), var(--gold-dark));
+        }
+        
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .logo h1 {
+            font-size: 2.2rem;
+            color: var(--gold);
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+        
+        .logo p {
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+        
+        .auth-tabs {
+            display: flex;
+            background-color: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 30px;
+        }
+        
+        .auth-tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+        
+        .auth-tab.active {
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            color: var(--bg-primary);
+            box-shadow: 0 2px 8px rgba(212, 175, 55, 0.3);
+        }
+        
+        .auth-form {
+            display: none;
+        }
+        
+        .auth-form.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 8px;
+            font-size: 1rem;
+            background-color: var(--bg-secondary);
+            color: white;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+        }
+        
+        .password-input {
+            position: relative;
+        }
+        
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 4px;
+        }
+        
+        .toggle-password:hover {
+            color: var(--gold);
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            color: var(--bg-primary);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
+        }
+        
+        .btn-google {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid rgba(255,255,255,0.1);
+            margin-top: 15px;
+        }
+        
+        .btn-google:hover {
+            background: rgba(255,255,255,0.05);
+            border-color: rgba(212, 175, 55, 0.3);
+        }
+        
+        .divider {
+            text-align: center;
+            margin: 25px 0;
+            position: relative;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+        
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .divider span {
+            background: var(--bg-card);
+            padding: 0 15px;
+            position: relative;
+        }
+        
+        .forgot-password {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .forgot-password a {
+            color: var(--gold);
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        
+        .forgot-password a:hover {
+            text-decoration: underline;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            z-index: 10000;
+            max-width: 300px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            animation: slideIn 0.3s ease;
+        }
+        
+        .notification.success {
+            background: linear-gradient(135deg, var(--green), #22c55e);
+        }
+        
+        .notification.error {
+            background: linear-gradient(135deg, var(--red), #ff1a1a);
+        }
+        
+        .notification.info {
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: var(--gold);
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="logo">
+                <h1>🛍️ Mercado Inteligente</h1>
+                <p>Sua plataforma de compras inteligentes</p>
+            </div>
+            
+            <div class="auth-tabs">
+                <div class="auth-tab active" data-tab="login">Entrar</div>
+                <div class="auth-tab" data-tab="register">Cadastrar</div>
+            </div>
+            
+            <!-- Formulário de Login -->
+            <form id="login-form" class="auth-form active">
+                <div class="form-group">
+                    <label class="form-label" for="login-email">Email</label>
+                    <input type="email" class="form-control" id="login-email" placeholder="seu@email.com" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="login-password">Senha</label>
+                    <div class="password-input">
+                        <input type="password" class="form-control" id="login-password" placeholder="Sua senha" required>
+                        <button type="button" class="toggle-password" data-target="login-password">👁️</button>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" id="login-btn">
+                    <span>Entrar</span>
+                </button>
+                
+                <div class="forgot-password">
+                    <a href="#" id="forgot-password">Esqueci minha senha</a>
+                </div>
+                
+                <div class="divider">
+                    <span>Ou continue com</span>
+                </div>
+                
+                <button type="button" class="btn btn-google" id="google-login">
+                    <span>🔗 Google</span>
+                </button>
+            </form>
+            
+            <!-- Formulário de Registro -->
+            <form id="register-form" class="auth-form">
+                <div class="form-group">
+                    <label class="form-label" for="register-name">Nome Completo</label>
+                    <input type="text" class="form-control" id="register-name" placeholder="Seu nome completo" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="register-email">Email</label>
+                    <input type="email" class="form-control" id="register-email" placeholder="seu@email.com" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="register-password">Senha</label>
+                    <div class="password-input">
+                        <input type="password" class="form-control" id="register-password" placeholder="Mínimo 6 caracteres" required>
+                        <button type="button" class="toggle-password" data-target="register-password">👁️</button>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" id="register-btn">
+                    <span>Criar Conta</span>
+                </button>
+                
+                <div class="divider">
+                    <span>Ou cadastre-se com</span>
+                </div>
+                
+                <button type="button" class="btn btn-google" id="google-register">
+                    <span>🔗 Google</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+  // 🔑 CONFIGURAÇÃO DO SUPABASE - SEM ESPAÇOS!
+  const supabaseUrl = 'https://obvlxoxcdcyswdxxhhiv.supabase.co';
+  const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9idmx4b3hjZGN5c3dkeHhoaGl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1MDQzNTEsImV4cCI6MjA3NTA4MDM1MX0.qvbLLRlw5TuHUirJLwJcTkqCWmqISOup7nofw08xQ8I';
+  
+  const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+
+  // 🔔 Notificações
+  function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    setTimeout(() => notification.remove(), 5000);
+  }
+
+  // 👁️ Toggle senha
+  document.querySelectorAll('.toggle-password').forEach(button => {
+    button.addEventListener('click', function() {
+      const targetId = this.getAttribute('data-target');
+      const input = document.getElementById(targetId);
+      input.type = input.type === 'password' ? 'text' : 'password';
+      this.textContent = input.type === 'password' ? '👁️' : '🔒';
+    });
+  });
+
+  // 📝 Abas
+  document.querySelectorAll('.auth-tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+      document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+      this.classList.add('active');
+      document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+      document.getElementById(this.dataset.tab + '-form').classList.add('active');
+    });
+  });
+
+  // 🔐 Login com email/senha
+  document.getElementById('login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+    const btn = document.getElementById('login-btn');
+    
+    btn.innerHTML = '<div class="loading"></div>';
+    btn.disabled = true;
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      
+      showNotification('✅ Login realizado!', 'success');
+      setTimeout(() => window.location.href = 'admin.html', 1000);
+    } catch (err) {
+      showNotification('❌ ' + err.message, 'error');
+    } finally {
+      btn.innerHTML = '<span>Entrar</span>';
+      btn.disabled = false;
+    }
+  });
+
+  // 📝 Registro
+  document.getElementById('register-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = document.getElementById('register-name').value;
+    const email = document.getElementById('register-email').value;
+    const password = document.getElementById('register-password').value;
+    const btn = document.getElementById('register-btn');
+    
+    if (password.length < 6) {
+      showNotification('A senha deve ter pelo menos 6 caracteres', 'error');
+      return;
+    }
+
+    btn.innerHTML = '<div class="loading"></div>';
+    btn.disabled = true;
+
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { name } }
+      });
+      if (error) throw error;
+      
+      showNotification('✅ Conta criada! Verifique seu email.', 'success');
+      setTimeout(() => window.location.href = 'login.html', 2000);
+    } catch (err) {
+      showNotification('❌ ' + err.message, 'error');
+    } finally {
+      btn.innerHTML = '<span>Criar Conta</span>';
+      btn.disabled = false;
+    }
+  });
+
+  // 🔗 Login com Google - CORRIGIDO PARA PRODUÇÃO
+  async function googleSignIn() {
+    const isProduction = window.location.hostname === 'mozranchu.vercel.app';
+    const redirectUrl = isProduction
+      ? 'https://mozranchu.vercel.app/'
+      : window.location.origin + '/';
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: redirectUrl
+      }
+    });
+    
+    if (error) {
+      console.error('Erro Google:', error);
+      showNotification('❌ ' + error.message, 'error');
+    }
+  }
+
+  document.getElementById('google-login').addEventListener('click', googleSignIn);
+  document.getElementById('google-register').addEventListener('click', googleSignIn);
+
+  // 🎯 Verifica sessão existente
+  async function checkSession() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      showNotification('🔐 Sessão ativa! Redirecionando...', 'info');
+      setTimeout(() => window.location.href = 'admin.html', 1000);
+    }
+  }
+
+  // Inicializa
+  document.addEventListener('DOMContentLoaded', checkSession);
+</script>
+</body>
+</html>
