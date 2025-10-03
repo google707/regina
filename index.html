@@ -1,268 +1,973 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Depesito Binance</title>
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      background-color: #0b0e11;
-      font-family: 'Segoe UI', Roboto, sans-serif;
-      color: #eaecef;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-    }
-
-    .container {
-      background: #181a20;
-      border-radius: 16px;
-      box-shadow: 0 0 12px rgba(252, 213, 53, 0.1);
-      width: 92%;
-      max-width: 500px;
-      padding: 24px;
-      text-align: center;
-    }
-
-    h1 {
-      font-size: 1.5rem;
-      font-weight: bold;
-      color: #fcd535;
-      margin-bottom: 5px;
-    }
-
-    .info {
-      font-size: 0.95rem;
-      color: #a1a7bb;
-      margin-bottom: 20px;
-    }
-
-    form {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin-top: 10px;
-    }
-
-    label {
-      text-align: left;
-      font-size: 0.88rem;
-      font-weight: 500;
-      color: #f0f0f0;
-    }
-
-    input[type="text"],
-    input[type="number"],
-    input[type="tel"] {
-      padding: 12px;
-      font-size: 1rem;
-      border-radius: 10px;
-      border: 1px solid #2b3139;
-      background-color: #0e1117;
-      color: #fff;
-      outline: none;
-    }
-
-    input::placeholder {
-      color: #777;
-    }
-
-    .result {
-      font-size: 0.95rem;
-      margin: 5px 0;
-      color: #ccc;
-    }
-
-    .error {
-      color: #ff4d4d;
-      font-size: 0.9rem;
-    }
-
-    .payment-note {
-      font-size: 0.85rem;
-      color: #aaa;
-      margin-top: 10px;
-    }
-
-    input[type="submit"] {
-      background: #fcd535;
-      color: #181a20;
-      font-weight: bold;
-      font-size: 1rem;
-      border: none;
-      border-radius: 10px;
-      padding: 14px;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-
-    input[type="submit"]:hover {
-      background: #e5c100;
-    }
-
-    #responseMessage {
-      margin-top: 15px;
-      font-size: 0.95rem;
-      text-align: center;
-    }
-
-    @media screen and (max-width: 480px) {
-      h1 {
-        font-size: 1.3rem;
-      }
-
-      .container {
-        padding: 18px 16px;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Administração - Mercado Inteligente</title>
+    <!-- Supabase JS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #121212;
+            --bg-card: #1a1a1a;
+            --text-primary: #ffffff;
+            --text-secondary: #e0e0e0;
+            --text-muted: #a0a0a0;
+            --gold: #D4AF37;
+            --gold-light: #e6c25d;
+            --gold-dark: #b8860b;
+            --red: #ff4d4d;
+            --green: #4ade80;
+            --orange: #f97316;
+            --sidebar-width: 250px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--bg-secondary);
+            color: white;
+            padding: 20px 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            border-right: 1px solid rgba(212, 175, 55, 0.15);
+        }
+        
+        .logo {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+            margin-bottom: 20px;
+        }
+        
+        .logo h1 {
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--gold);
+            font-weight: 700;
+        }
+        
+        .nav-menu {
+            list-style: none;
+        }
+        
+        .nav-item {
+            margin-bottom: 5px;
+        }
+        
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            gap: 10px;
+            border-left: 3px solid transparent;
+        }
+        
+        .nav-link:hover, .nav-link.active {
+            color: var(--gold);
+            background-color: rgba(212, 175, 55, 0.08);
+            border-left: 3px solid var(--gold);
+        }
+        
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 20px;
+        }
+        
+        .header {
+            background-color: var(--bg-card);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid rgba(212, 175, 55, 0.1);
+        }
+        
+        .header h2 {
+            color: var(--gold);
+            font-weight: 600;
+        }
+        
+        .user-controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        
+        .user-controls span {
+            color: var(--text-secondary);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background-color: var(--bg-card);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            text-align: center;
+            border: 1px solid rgba(212, 175, 55, 0.15);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.2);
+            border-color: rgba(212, 175, 55, 0.3);
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--gold);
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+        
+        .content-section {
+            background-color: var(--bg-card);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(212, 175, 55, 0.1);
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.15);
+        }
+        
+        .section-title {
+            font-size: 1.3rem;
+            color: var(--gold);
+            font-weight: 600;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            color: var(--text-secondary);
+        }
+        
+        .data-table th,
+        .data-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        
+        .data-table th {
+            background-color: rgba(212, 175, 55, 0.08);
+            font-weight: 600;
+            color: var(--gold);
+        }
+        
+        .data-table tr:hover {
+            background-color: rgba(212, 175, 55, 0.05);
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.9rem;
+            color: white;
+        }
+        
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 0.8rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, var(--green), #22c55e);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, var(--orange), #ea580c);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, var(--red), #ff1a1a);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #555, #333);
+        }
+        
+        .btn:hover {
+            opacity: 0.95;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+        }
+        
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .status-active {
+            background-color: rgba(74, 222, 128, 0.15);
+            color: var(--green);
+            border: 1px solid rgba(74, 222, 128, 0.3);
+        }
+        
+        .status-banned {
+            background-color: rgba(255, 77, 77, 0.15);
+            color: var(--red);
+            border: 1px solid rgba(255, 77, 77, 0.3);
+        }
+        
+        .status-pending {
+            background-color: rgba(249, 115, 22, 0.15);
+            color: var(--orange);
+            border: 1px solid rgba(249, 115, 22, 0.3);
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+            margin-bottom: 20px;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            color: var(--text-muted);
+        }
+        
+        .tab:hover {
+            color: var(--gold);
+        }
+        
+        .tab.active {
+            border-bottom-color: var(--gold);
+            color: var(--gold);
+            font-weight: 600;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 18px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 6px;
+            font-size: 0.95rem;
+            background-color: var(--bg-secondary);
+            color: white;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background-color: var(--bg-card);
+            padding: 30px;
+            border-radius: 14px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+            max-width: 520px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid rgba(212, 175, 55, 0.25);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+        }
+        
+        .modal-title {
+            font-size: 1.4rem;
+            color: var(--gold);
+            font-weight: 600;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: color 0.2s;
+        }
+        
+        .close-modal:hover {
+            color: var(--gold);
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Deposito Binance</h1>
-    <div class="info">Deposito minimo: US$ 20</div>
-    <form id="depositForm">
-      <label for="nome">Nome:</label>
-      <input type="text" id="nome" name="nome" placeholder="Digite seu nome" required />
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <div class="logo">
+            <h1>🛡️ Mercado Inteligente</h1>
+        </div>
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="#" class="nav-link active" data-tab="dashboard">📊 Dashboard</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link" data-tab="users">👥 Gestão de Usuários</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link" data-tab="sales">💰 Vendas</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link" data-tab="purchases">🛒 Compras</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link" data-tab="moderation">🛡️ Moderação</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link" data-tab="reports">📈 Relatórios</a>
+            </li>
+        </ul>
+    </nav>
 
-      <label for="cr">ID do usuario ou E-mail:</label>
-      <input type="text" id="cr" name="cr" placeholder="Ex: 123456 ou seu@email.com" required />
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="header">
+            <h2 id="page-title">Dashboard Geral</h2>
+            <div class="user-controls">
+                <span id="admin-name">👑 Super Admin</span>
+                <button class="btn btn-secondary" onclick="logout()">Sair</button>
+            </div>
+        </div>
 
-      <label for="telefone">Numero (e-mola / M-Pesa):</label>
-      <input type="tel" id="telefone" name="telefone" placeholder="Ex: 861234567" required />
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content active">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="total-users">-</div>
+                    <div class="stat-label">Total de Usuários</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="total-sales">-</div>
+                    <div class="stat-label">Vendas Realizadas</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="total-revenue">-</div>
+                    <div class="stat-label">Receita Total</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="active-now">-</div>
+                    <div class="stat-label">Usuários Online</div>
+                </div>
+            </div>
 
-      <label for="dolar">Valor em dolares (minimo 20):</label>
-      <input type="number" id="dolar" name="dolar" min="20" step="any" placeholder="Ex: 10" required />
+            <div class="content-section">
+                <div class="section-header">
+                    <h3 class="section-title">Atividade Recente</h3>
+                </div>
+                <div id="recent-activity">
+                    <p style="color: var(--text-muted);">Carregando atividade recente...</p>
+                </div>
+            </div>
 
-      <div class="result" id="mtResult">Valor em Meticais: 0 MT</div>
+            <div class="content-section">
+                <div class="section-header">
+                    <h3 class="section-title">Ações Rápidas</h3>
+                </div>
+                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                    <button class="btn btn-primary" onclick="loadAllUsersTab()">👥 Ver Todos os Usuários</button>
+                    <button class="btn btn-warning" onclick="openTab('moderation')">🛡️ Painel de Moderação</button>
+                    <button class="btn btn-success" onclick="generateReport()">📈 Gerar Relatório</button>
+                </div>
+            </div>
+        </div>
 
-      <input type="submit" value="Efetuar Deposito" />
-    </form>
+        <!-- Users Tab -->
+        <div id="users" class="tab-content">
+            <div class="content-section">
+                <div class="section-header">
+                    <h3 class="section-title">Gestão de Usuários</h3>
+                    <button class="btn btn-primary" onclick="loadAllUsers()">🔄 Atualizar Lista</button>
+                </div>
+                
+                <div class="tabs">
+                    <div class="tab active" data-user-tab="all">Todos os Usuários</div>
+                    <div class="tab" data-user-tab="buyers">Compradores</div>
+                    <div class="tab" data-user-tab="sellers">Vendedores</div>
+                    <div class="tab" data-user-tab="banned">Banidos</div>
+                </div>
 
-    <div class="payment-note">
-      Pagamentos via <strong>M-Pesa</strong> e <strong>e-Mola</strong> sao aceitos.
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nome</th>
+                            <th>Email</th>
+                            <th>Tipo</th>
+                            <th>Status</th>
+                            <th>Data Cadastro</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-table-body">
+                        <tr>
+                            <td colspan="7" style="text-align: center; color: var(--text-muted);">Carregando usuários...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Sales Tab -->
+        <div id="sales" class="tab-content">
+            <div class="content-section">
+                <div class="section-header">
+                    <h3 class="section-title">Gestão de Vendas</h3>
+                    <button class="btn btn-primary" onclick="loadSalesData()">🔄 Atualizar Dados</button>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID Venda</th>
+                            <th>Vendedor</th>
+                            <th>Comprador</th>
+                            <th>Produtos</th>
+                            <th>Valor Total</th>
+                            <th>Data</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sales-table-body">
+                        <tr>
+                            <td colspan="8" style="text-align: center; color: var(--text-muted);">Carregando vendas...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Purchases Tab -->
+        <div id="purchases" class="tab-content">
+            <div class="content-section">
+                <div class="section-header">
+                    <h3 class="section-title">Histórico de Compras</h3>
+                    <button class="btn btn-primary" onclick="loadPurchasesData()">🔄 Atualizar Dados</button>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID Compra</th>
+                            <th>Comprador</th>
+                            <th>Vendedor</th>
+                            <th>Produtos</th>
+                            <th>Valor Total</th>
+                            <th>Data</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="purchases-table-body">
+                        <tr>
+                            <td colspan="8" style="text-align: center; color: var(--text-muted);">Carregando compras...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Moderation Tab -->
+        <div id="moderation" class="tab-content">
+            <div class="content-section">
+                <div class="section-header">
+                    <h3 class="section-title">Painel de Moderação</h3>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div>
+                        <h4 style="color: var(--gold); margin-bottom: 12px;">Usuários Reportados</h4>
+                        <div id="reported-users">
+                            <p style="color: var(--text-muted);">Carregando...</p>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 style="color: var(--gold); margin-bottom: 12px;">Ações de Moderação</h4>
+                        <div style="display: flex; flex-direction: column; gap: 12px;">
+                            <button class="btn btn-danger" onclick="openModal('ban-modal')">🚫 Banir Usuário</button>
+                            <button class="btn btn-primary" onclick="alert('Funcionalidade de promoção requer implementação adicional.')">⭐ Promover Usuário</button>
+                            <button class="btn btn-warning" onclick="alert('Envio de avisos será implementado com notificações.')">⚠️ Enviar Aviso</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reports Tab -->
+        <div id="reports" class="tab-content">
+            <div class="content-section">
+                <div class="section-header">
+                    <h3 class="section-title">Relatórios e Analytics</h3>
+                    <button class="btn btn-primary" onclick="generateReport()">📊 Gerar Relatório Completo</button>
+                </div>
+                <div id="reports-content">
+                    <p style="color: var(--text-muted);">Os relatórios são gerados em tempo real a partir dos dados do banco.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modals -->
+    <div id="ban-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Banir Usuário</h3>
+                <button class="close-modal" onclick="closeModal('ban-modal')">&times;</button>
+            </div>
+            <form id="ban-form">
+                <div class="form-group">
+                    <label class="form-label">Selecionar Usuário</label>
+                    <select class="form-control" id="ban-user-select" required>
+                        <option value="">Carregando usuários...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Motivo do Banimento</label>
+                    <select class="form-control" id="ban-reason" required>
+                        <option value="">Selecionar motivo</option>
+                        <option value="spam">Spam</option>
+                        <option value="fraude">Fraude</option>
+                        <option value="comportamento">Comportamento Inadequado</option>
+                        <option value="outro">Outro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Duração</label>
+                    <select class="form-control" id="ban-duration" required>
+                        <option value="1">1 dia</option>
+                        <option value="7">7 dias</option>
+                        <option value="30">30 dias</option>
+                        <option value="permanent">Permanente</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Observações</label>
+                    <textarea class="form-control" id="ban-notes" rows="3"></textarea>
+                </div>
+                <button type="submit" class="btn btn-danger">Confirmar Banimento</button>
+            </form>
+        </div>
     </div>
 
-    <div id="responseMessage"></div>
-  </div>
+    <script>
+        // 🔑 CONFIGURE AQUI SUAS CREDENCIAIS DO SUPABASE
+        const supabaseUrl = 'https://SEU-PROJETO.supabase.co';
+        const supabaseAnonKey = 'SUA_ANON_KEY_AQUI';
+        
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
 
-  <script>
-    const exchangeRate = 70;
-    const dolarInput = document.getElementById('dolar');
-    const mtResult = document.getElementById('mtResult');
-    const depositForm = document.getElementById('depositForm');
-    const responseMessage = document.getElementById('responseMessage');
+        // Estado global
+        let currentUser = null;
 
-    let formData = {};
-
-    dolarInput.addEventListener('input', function () {
-      const dollars = parseFloat(this.value);
-      if (isNaN(dollars)) {
-        mtResult.textContent = 'Valor em Meticais: 0 MT';
-        return;
-      }
-      if (dollars < 20) {
-        mtResult.innerHTML = '<span class="error">Deposito minimo e de US$ 20</span>';
-      } else {
-        const meticais = dollars * exchangeRate;
-        mtResult.textContent = 'Valor em Meticais: ' + meticais.toFixed(2) + ' MT';
-      }
-    });
-
-    function validarTelefone(numero) {
-      const num = numero.trim();
-      if (!/^\d{9}$/.test(num)) {
-        return { valido: false, mensagem: 'Numero invalido: 9 digitos exigidos.' };
-      }
-      const prefix = num.substring(0, 2);
-      if (['86', '87'].includes(prefix)) return { valido: true, tipo: 'e-mola' };
-      if (['84', '85'].includes(prefix)) return { valido: true, tipo: 'M-Pesa' };
-      return { valido: false, mensagem: 'Prefixo invalido. Use 86/87 ou 84/85.' };
-    }
-
-    depositForm.addEventListener('submit', function (e) {
-      e.preventDefault();
-      responseMessage.textContent = '';
-
-      const nome = document.getElementById('nome').value.trim();
-      const cr = document.getElementById('cr').value.trim();
-      const telefone = document.getElementById('telefone').value.trim();
-      const dollars = parseFloat(document.getElementById('dolar').value);
-
-      if (!nome || !cr || !telefone || isNaN(dollars)) {
-        responseMessage.innerHTML = '<span class="error">Preencha todos os campos corretamente.</span>';
-        return;
-      }
-
-      if (dollars < 20) {
-        responseMessage.innerHTML = '<span class="error">Deposito minimo e de US$ 20.</span>';
-        return;
-      }
-
-      const validacaoTel = validarTelefone(telefone);
-      if (!validacaoTel.valido) {
-        responseMessage.innerHTML = '<span class="error">' + validacaoTel.mensagem + '</span>';
-        return;
-      }
-
-      const meticais = (dollars * exchangeRate).toFixed(2);
-      formData = {
-        nome, cr, telefone,
-        tipoPagamento: validacaoTel.tipo,
-        dollars,
-        meticais
-      };
-
-      efetuarPagamento();
-    });
-
-    function efetuarPagamento() {
-      responseMessage.textContent = 'Processando pagamento...';
-
-      const carteira = '1745492646950x913670938561085400';
-      const payload = {
-        carteira: carteira,
-        numero: formData.telefone,
-        "quem comprou": formData.nome,
-        valor: formData.meticais
-      };
-
-      let endpoint = '';
-      if (formData.tipoPagamento === 'e-mola') {
-        endpoint = 'https://mozpayment.co.mz/api/1.1/wf/pagamentorotativoemola';
-      } else if (formData.tipoPagamento === 'M-Pesa') {
-        endpoint = 'https://mozpayment.co.mz/api/1.1/wf/pagamentorotativompesa';
-      }
-
-      fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      })
-      .then(response => {
-        if (formData.tipoPagamento === 'M-Pesa') {
-          if (response.status === 200) {
-            responseMessage.textContent = 'Pagamento via M-Pesa concluido com sucesso!';
-          } else {
-            responseMessage.innerHTML = '<span class="error">Erro M-Pesa: Codigo ' + response.status + '</span>';
-          }
-        } else {
-          return response.json().then(data => {
-            if (data.success === 'yes') {
-              responseMessage.textContent = 'Pagamento via e-mola concluido com sucesso!';
-            } else {
-              responseMessage.innerHTML = '<span class="error">Erro e-mola: pagamento nao realizado.</span>';
+        // Verifica se o usuário está logado como admin
+        async function checkAdminSession() {
+            const { data: { session } } = await supabase.auth.getSession();
+            
+            if (!session) {
+                alert('Você precisa estar logado como administrador.');
+                window.location.href = 'https://supabase.com/auth'; // ou sua página de login
+                return false;
             }
-          });
+
+            // Busca o perfil do usuário
+            const { data: profile, error } = await supabase
+                .from('profiles')
+                .select('name, role')
+                .eq('id', session.user.id)
+                .single();
+
+            if (error || !profile || !['super_admin', 'admin'].includes(profile.role)) {
+                alert('Acesso negado. Apenas administradores podem acessar este painel.');
+                await supabase.auth.signOut();
+                return false;
+            }
+
+            currentUser = { id: session.user.id, ...profile };
+            document.getElementById('admin-name').textContent = `👑 ${profile.name || 'Admin'}`;
+            return true;
         }
-      })
-      .catch(error => {
-        responseMessage.innerHTML = '<span class="error">Erro de conexao: ' + error + '</span>';
-      });
-    }
-  </script>
+
+        // Funções de navegação
+        function openTab(tabId) {
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            document.querySelector(`.nav-link[data-tab="${tabId}"]`).classList.add('active');
+            
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            
+            document.getElementById('page-title').textContent = 
+                document.querySelector(`.nav-link[data-tab="${tabId}"]`).textContent.trim();
+            
+            // Carrega dados da aba
+            if (tabId === 'dashboard') loadDashboardData();
+            else if (tabId === 'users') loadAllUsers();
+            else if (tabId === 'sales') loadSalesData();
+            else if (tabId === 'purchases') loadPurchasesData();
+            else if (tabId === 'moderation') loadModerationData();
+        }
+
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                openTab(this.getAttribute('data-tab'));
+            });
+        });
+
+        // Abas de usuários
+        document.querySelectorAll('[data-user-tab]').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('[data-user-tab]').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                // Aqui você pode filtrar por tipo (ex: role = 'buyer')
+                loadAllUsers(); // por simplicidade, recarrega todos
+            });
+        });
+
+        // 🔁 Carregar dados do dashboard
+        async function loadDashboardData() {
+            try {
+                // Total de usuários
+                const { count: totalUsers } = await supabase
+                    .from('profiles')
+                    .select('*', { count: 'exact', head: true });
+
+                // Total de vendas
+                const { count: totalSales } = await supabase
+                    .from('sales')
+                    .select('*', { count: 'exact', head: true });
+
+                // Receita total
+                const { data: revenueData } = await supabase
+                    .from('sales')
+                    .select('total')
+                    .gte('status', 'completed');
+
+                const totalRevenue = revenueData.reduce((sum, sale) => sum + (sale.total || 0), 0);
+
+                // Usuários online (simulado - no mundo real, você teria uma tabela de sessões)
+                const activeNow = 0;
+
+                document.getElementById('total-users').textContent = totalUsers || '0';
+                document.getElementById('total-sales').textContent = totalSales || '0';
+                document.getElementById('total-revenue').textContent = `R$ ${totalRevenue.toFixed(2)}`;
+                document.getElementById('active-now').textContent = activeNow;
+
+                // Atividade recente (últimas 3 vendas)
+                const { data: recentSales } = await supabase
+                    .from('sales')
+                    .select('buyer_id, seller_id, total, created_at')
+                    .order('created_at', { ascending: false })
+                    .limit(3);
+
+                if (recentSales && recentSales.length > 0) {
+                    const activityHtml = recentSales.map(sale => 
+                        `<p style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); color: var(--text-secondary);">
+                            Nova venda: R$ ${sale.total.toFixed(2)} • ${new Date(sale.created_at).toLocaleDateString()}
+                        </p>`
+                    ).join('');
+                    document.getElementById('recent-activity').innerHTML = activityHtml;
+                } else {
+                    document.getElementById('recent-activity').innerHTML = 
+                        '<p style="color: var(--text-muted);">Nenhuma atividade recente.</p>';
+                }
+
+            } catch (error) {
+                console.error('Erro no dashboard:', error);
+                document.getElementById('recent-activity').innerHTML = 
+                    '<p style="color: var(--red);">Erro ao carregar dados</p>';
+            }
+        }
+
+        // 👥 Carregar usuários
+        async function loadAllUsers() {
+            try {
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                if (!data || data.length === 0) {
+                    document.getElementById('users-table-body').innerHTML = 
+                        '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);">Nenhum usuário encontrado</td></tr>';
+                    return;
+                }
+
+                // Preenche o select do modal de banimento
+                const userSelect = document.getElementById('ban-user-select');
+                userSelect.innerHTML = '<option value="">Selecione um usuário</option>';
+                data.forEach(user => {
+                    if (user.status !== 'banned') {
+                        const option = document.createElement('option');
+                        option.value = user.id;
+                        option.textContent = `${user.name || 'Sem nome'} (${user.email})`;
+                        userSelect.appendChild(option);
+                    }
+                });
+
+                // Tabela de usuários
+                const rows = data.map(user => `
+                    <tr>
+                        <td>${user.id.substring(0, 8)}</td>
+                        <td>${user.name || '—'}</td>
+                        <td>${user.email}</td>
+                        <td>${user.role}</td>
+                        <td><span class="status-${user.status === 'active' ? 'active' : 'banned'}">${user.status}</span></td>
+                        <td>${new Date(user.created_at).toLocaleDateString()}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary" onclick="viewUser('${user.id}')">👁️</button>
+                            ${user.status !== 'banned' ? 
+                                `<button class="btn btn-sm btn-danger" onclick="banUser('${user.id}')">🚫</button>` : 
+                                `<button class="btn btn-sm btn-success" disabled>✅ Banido</button>`
+                            }
+                        </td>
+                    </tr>
+                `).join('');
+
+                document.getElementById('users-table-body').innerHTML = rows;
+
+            } catch (error) {
+                console.error('Erro ao carregar usuários:', error);
+                document.getElementById('users-table-body').innerHTML = 
+                    '<tr><td colspan="7" style="text-align:center;color:var(--red);">Erro ao carregar</td></tr>';
+            }
+        }
+
+        // 💰 Carregar vendas
+        async function loadSalesData() {
+            try {
+                const { data, error } = await supabase
+                    .from('sales')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                if (!data || data.length === 0) {
+                    document.getElementById('sales-table-body').innerHTML = 
+                        '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);">Nenhuma venda registrada</td></tr>';
+                    return;
+                }
+
+                const rows = data.map(sale => `
+                    <tr>
+                        <td>V-${sale.id}</td>
+                        <td>${sale.seller_id.substring(0, 8)}</td>
+                        <td>${sale.buyer_id.substring(0, 8)}</td>
+                        <td>${Array.isArray(sale.products) ? sale.products.length : 'N/A'} item(s)</td>
+                        <td>R$ ${sale.total?.toFixed(2) || '0,00'}</td>
+                        <td>${new Date(sale.created_at).toLocaleDateString()}</td>
+                        <td><span class="status-${sale.status === 'completed' ? 'active' : 'pending'}">${sale.status}</span></td>
+                        <td><button class="btn btn-sm btn-primary">👁️</button></td>
+                    </tr>
+                `).join('');
+
+                document.getElementById('sales-table-body').innerHTML = rows;
+
+            } catch (error) {
+                console.error('Erro ao carregar vendas:', error);
+                document.getElementById('sales-table-body').innerHTML = 
+                    '<tr><td colspan="8" style="text-align:center;color:var(--red);">Erro ao carregar</td></tr>';
+            }
+        }
+
+        // 🛒 Carregar compras (mesmo que vendas, mas invertido)
+        async function loadPurchasesData() {
+            loadSalesData(); // por simplicidade
+        }
+
+        // 🛡️ Carregar moderação
+        async function loadModerationData() {
+            document.getElementById('reported-users').innerHTML = 
+                '<p style="color: var(--text-muted);">Nenhum usuário reportado no momento.</p>';
+        }
+
+        // 📊 Gerar relatório
+        function generateReport() {
+            alert('Relatório gerado com sucesso! (em um sistema real, exportaria CSV/PDF)');
+        }
+
+        // 👁️ Ver usuário
+        function viewUser(userId) {
+            alert(`Visualizando perfil do usuário: ${userId}`);
+        }
+
+        // 🚫 Banir usuário (SIMULADO - em produção, use Edge Function)
+        async function banUser(userId) {
+            if (!confirm('Tem certeza que deseja banir este usuário?')) return;
+
+            try {
+                const { error } = await supabase
+                    .from('profiles')
+                    .update({ status: 'banned' })
+                    .eq('id', userId);
+
+                if (error) throw error;
+
+                alert('Usuário banido com sucesso!');
+                loadAllUsers();
+            } catch (error) {
+                console.error('Erro ao banir:', error);
+                alert('Erro ao banir usuário: ' + error.message);
+            }
+        }
+
+        // Modais
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'flex';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            document.querySelectorAll('.modal').forEach(modal => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        };
+
+        // Formulário de banimento
+        document.getElementById('ban-form')?.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const userId = document.getElementById('ban-user-select').value;
+            if (!userId) {
+                alert('Selecione um usuário.');
+                return;
+            }
+
+            banUser(userId);
+            closeModal('ban-modal');
+        });
+
+        // Sair
+        async function logout() {
+            await supabase.auth.signOut();
+            window.location.reload();
+        }
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', async function() {
+            const isAdmin = await checkAdminSession();
+            if (isAdmin) {
+                loadDashboardData();
+            }
+        });
+    </script>
 </body>
 </html>
