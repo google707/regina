@@ -497,7 +497,7 @@
             const { data: { session } } = await supabase.auth.getSession();
             if (session) {
                 showNotification('🔐 Sessão ativa! Redirecionando...', 'info');
-                setTimeout(() => window.location.href = 'admin.html', 1000);
+                setTimeout(() => window.location.href = 'https://mozranchu.vercel.app', 1000);
             }
         }
 
