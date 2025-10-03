@@ -410,15 +410,15 @@
             });
         });
 
-        // 🔁 Função inteligente de redirecionamento por role
+        // 🔁 Função inteligente de redirecionamento por role - CORRIGIDA
         async function redirectToDashboard() {
-            const {  { session } } = await supabase.auth.getSession();
+            const { data: { session } } = await supabase.auth.getSession(); // ✅ Corrigido
             if (!session) {
                 window.location.href = 'index.html';
                 return;
             }
 
-            const {  profile, error } = await supabase
+            const { data: profile, error } = await supabase // ✅ Corrigido
                 .from('profiles')
                 .select('role')
                 .eq('id', session.user.id)
@@ -487,6 +487,9 @@
                 if (error) throw error;
                 
                 showNotification('✅ Conta criada! Verifique seu email para confirmar.', 'success');
+                // Limpa formulário e volta para login
+                document.getElementById('register-form').reset();
+                document.querySelector('[data-tab="login"]').click();
             } catch (err) {
                 showNotification('❌ ' + (err.message || 'Erro ao criar conta'), 'error');
             } finally {
@@ -516,33 +519,45 @@
         document.getElementById('google-login').addEventListener('click', googleSignIn);
         document.getElementById('google-register').addEventListener('click', googleSignIn);
 
-        // 🎯 Verifica se já está logado ao carregar a página
+        // 🎯 Verifica se já está logado ao carregar a página - CORRIGIDA
         async function checkSessionAndRedirect() {
-            const {  { session } } = await supabase.auth.getSession();
+            const { data: { session } } = await supabase.auth.getSession(); // ✅ Corrigido
             if (session) {
                 showNotification('🔐 Sessão ativa! Redirecionando...', 'info');
                 setTimeout(redirectToDashboard, 1000);
             }
         }
 
-        // Esqueci minha senha
-        document.getElementById('forgot-password').addEventListener('click', (e) => {
+        // 🔑 Esqueci minha senha
+        document.getElementById('forgot-password').addEventListener('click', async (e) => {
             e.preventDefault();
             const email = prompt('Digite seu email para redefinir a senha:');
             if (email) {
-                supabase.auth.resetPasswordForEmail(email)
-                    .then(({ data, error }) => {
-                        if (error) {
-                            showNotification('❌ ' + error.message, 'error');
-                        } else {
-                            showNotification('📧 Link de redefinição enviado!', 'success');
-                        }
+                try {
+                    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                        redirectTo: window.location.origin + '/reset-password.html'
                     });
+                    
+                    if (error) throw error;
+                    showNotification('📧 Link de redefinição enviado para seu email!', 'success');
+                } catch (error) {
+                    showNotification('❌ ' + (error.message || 'Erro ao enviar email'), 'error');
+                }
             }
         });
 
-        // Inicializa ao carregar
-        document.addEventListener('DOMContentLoaded', checkSessionAndRedirect);
+        // 🎯 Foca no primeiro campo do formulário ativo
+        document.addEventListener('DOMContentLoaded', function() {
+            checkSessionAndRedirect();
+            
+            const activeForm = document.querySelector('.auth-form.active');
+            if (activeForm) {
+                const firstInput = activeForm.querySelector('input[type="email"], input[type="text"]');
+                if (firstInput) {
+                    firstInput.focus();
+                }
+            }
+        });
     </script>
 </body>
 </html>
