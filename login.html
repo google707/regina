@@ -379,7 +379,6 @@
         // 🔑 CONFIGURAÇÃO DO SUPABASE — SEM ESPAÇOS!
         const supabaseUrl = 'https://obvlxoxcdcyswdxxhhiv.supabase.co';
         const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9idmx4b3hjZGN5c3dkeHhoaGl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1MDQzNTEsImV4cCI6MjA3NTA4MDM1MX0.qvbLLRlw5TuHUirJLwJcTkqCWmqISOup7nofw08xQ8I';
-        
         const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
 
         // 🔔 Notificações
@@ -411,6 +410,34 @@
             });
         });
 
+        // 🔁 Função inteligente de redirecionamento por role
+        async function redirectToDashboard() {
+            const {  { session } } = await supabase.auth.getSession();
+            if (!session) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            const {  profile, error } = await supabase
+                .from('profiles')
+                .select('role')
+                .eq('id', session.user.id)
+                .single();
+
+            if (error || !profile) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            if (['super_admin', 'admin'].includes(profile.role)) {
+                window.location.href = 'index.html';
+            } else if (profile.role === 'seller') {
+                window.location.href = 'seller-dashboard.html';
+            } else {
+                window.location.href = 'index.html'; // buyer ou outro
+            }
+        }
+
         // 🔐 Login com email/senha
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -426,7 +453,7 @@
                 if (error) throw error;
                 
                 showNotification('✅ Login realizado!', 'success');
-                setTimeout(() => window.location.href = 'https://mozranchu.vercel.app', 1000);
+                setTimeout(redirectToDashboard, 1000);
             } catch (err) {
                 showNotification('❌ ' + (err.message || 'Erro ao fazer login'), 'error');
             } finally {
@@ -470,7 +497,6 @@
 
         // 🔗 Login com Google
         async function googleSignIn() {
-            // Detecta ambiente (local ou produção)
             const isProduction = window.location.hostname === 'mozranchu.vercel.app';
             const redirectUrl = isProduction
                 ? 'https://mozranchu.vercel.app/'   // ✅ SEM espaços!
@@ -478,9 +504,7 @@
 
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
-                options: {
-                    redirectTo: redirectUrl
-                }
+                options: { redirectTo: redirectUrl }
             });
 
             if (error) {
@@ -492,19 +516,16 @@
         document.getElementById('google-login').addEventListener('click', googleSignIn);
         document.getElementById('google-register').addEventListener('click', googleSignIn);
 
-        // 🎯 Verifica se já está logado
-        async function checkSession() {
-            const { data: { session } } = await supabase.auth.getSession();
+        // 🎯 Verifica se já está logado ao carregar a página
+        async function checkSessionAndRedirect() {
+            const {  { session } } = await supabase.auth.getSession();
             if (session) {
                 showNotification('🔐 Sessão ativa! Redirecionando...', 'info');
-                setTimeout(() => window.location.href = 'https://mozranchu.vercel.app', 1000);
+                setTimeout(redirectToDashboard, 1000);
             }
         }
 
-        // Inicializa ao carregar
-        document.addEventListener('DOMContentLoaded', checkSession);
-
-        // Esqueci minha senha (opcional: implementar depois)
+        // Esqueci minha senha
         document.getElementById('forgot-password').addEventListener('click', (e) => {
             e.preventDefault();
             const email = prompt('Digite seu email para redefinir a senha:');
@@ -519,6 +540,9 @@
                     });
             }
         });
+
+        // Inicializa ao carregar
+        document.addEventListener('DOMContentLoaded', checkSessionAndRedirect);
     </script>
 </body>
 </html>
