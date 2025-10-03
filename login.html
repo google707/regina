@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Mercado Inteligente</title>
+    <!-- Supabase SDK - SEM espaços -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
@@ -375,133 +376,149 @@
     </div>
 
     <script>
-  // 🔑 CONFIGURAÇÃO DO SUPABASE - SEM ESPAÇOS!
-  const supabaseUrl = 'https://obvlxoxcdcyswdxxhhiv.supabase.co';
-  const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9idmx4b3hjZGN5c3dkeHhoaGl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1MDQzNTEsImV4cCI6MjA3NTA4MDM1MX0.qvbLLRlw5TuHUirJLwJcTkqCWmqISOup7nofw08xQ8I';
-  
-  const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+        // 🔑 CONFIGURAÇÃO DO SUPABASE — SEM ESPAÇOS!
+        const supabaseUrl = 'https://obvlxoxcdcyswdxxhhiv.supabase.co';
+        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9idmx4b3hjZGN5c3dkeHhoaGl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1MDQzNTEsImV4cCI6MjA3NTA4MDM1MX0.qvbLLRlw5TuHUirJLwJcTkqCWmqISOup7nofw08xQ8I';
+        
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
 
-  // 🔔 Notificações
-  function showNotification(message, type = 'info') {
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.textContent = message;
-    document.body.appendChild(notification);
-    setTimeout(() => notification.remove(), 5000);
-  }
+        // 🔔 Notificações
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            setTimeout(() => notification.remove(), 5000);
+        }
 
-  // 👁️ Toggle senha
-  document.querySelectorAll('.toggle-password').forEach(button => {
-    button.addEventListener('click', function() {
-      const targetId = this.getAttribute('data-target');
-      const input = document.getElementById(targetId);
-      input.type = input.type === 'password' ? 'text' : 'password';
-      this.textContent = input.type === 'password' ? '👁️' : '🔒';
-    });
-  });
+        // 👁️ Toggle senha
+        document.querySelectorAll('.toggle-password').forEach(button => {
+            button.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-target');
+                const input = document.getElementById(targetId);
+                input.type = input.type === 'password' ? 'text' : 'password';
+                this.textContent = input.type === 'password' ? '👁️' : '🔒';
+            });
+        });
 
-  // 📝 Abas
-  document.querySelectorAll('.auth-tab').forEach(tab => {
-    tab.addEventListener('click', function() {
-      document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-      this.classList.add('active');
-      document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
-      document.getElementById(this.dataset.tab + '-form').classList.add('active');
-    });
-  });
+        // 📝 Abas de login/registro
+        document.querySelectorAll('.auth-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+                document.getElementById(this.dataset.tab + '-form').classList.add('active');
+            });
+        });
 
-  // 🔐 Login com email/senha
-  document.getElementById('login-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const email = document.getElementById('login-email').value;
-    const password = document.getElementById('login-password').value;
-    const btn = document.getElementById('login-btn');
-    
-    btn.innerHTML = '<div class="loading"></div>';
-    btn.disabled = true;
+        // 🔐 Login com email/senha
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const btn = document.getElementById('login-btn');
+            
+            btn.innerHTML = '<div class="loading"></div>';
+            btn.disabled = true;
 
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-      
-      showNotification('✅ Login realizado!', 'success');
-      setTimeout(() => window.location.href = 'admin.html', 1000);
-    } catch (err) {
-      showNotification('❌ ' + err.message, 'error');
-    } finally {
-      btn.innerHTML = '<span>Entrar</span>';
-      btn.disabled = false;
-    }
-  });
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                if (error) throw error;
+                
+                showNotification('✅ Login realizado!', 'success');
+                setTimeout(() => window.location.href = 'admin.html', 1000);
+            } catch (err) {
+                showNotification('❌ ' + (err.message || 'Erro ao fazer login'), 'error');
+            } finally {
+                btn.innerHTML = '<span>Entrar</span>';
+                btn.disabled = false;
+            }
+        });
 
-  // 📝 Registro
-  document.getElementById('register-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const name = document.getElementById('register-name').value;
-    const email = document.getElementById('register-email').value;
-    const password = document.getElementById('register-password').value;
-    const btn = document.getElementById('register-btn');
-    
-    if (password.length < 6) {
-      showNotification('A senha deve ter pelo menos 6 caracteres', 'error');
-      return;
-    }
+        // 📝 Registro de novo usuário
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('register-name').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            const btn = document.getElementById('register-btn');
+            
+            if (password.length < 6) {
+                showNotification('A senha deve ter pelo menos 6 caracteres', 'error');
+                return;
+            }
 
-    btn.innerHTML = '<div class="loading"></div>';
-    btn.disabled = true;
+            btn.innerHTML = '<div class="loading"></div>';
+            btn.disabled = true;
 
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { data: { name } }
-      });
-      if (error) throw error;
-      
-      showNotification('✅ Conta criada! Verifique seu email.', 'success');
-      setTimeout(() => window.location.href = 'login.html', 2000);
-    } catch (err) {
-      showNotification('❌ ' + err.message, 'error');
-    } finally {
-      btn.innerHTML = '<span>Criar Conta</span>';
-      btn.disabled = false;
-    }
-  });
+            try {
+                const { data, error } = await supabase.auth.signUp({
+                    email,
+                    password,
+                    options: { data: { name } }
+                });
+                if (error) throw error;
+                
+                showNotification('✅ Conta criada! Verifique seu email para confirmar.', 'success');
+            } catch (err) {
+                showNotification('❌ ' + (err.message || 'Erro ao criar conta'), 'error');
+            } finally {
+                btn.innerHTML = '<span>Criar Conta</span>';
+                btn.disabled = false;
+            }
+        });
 
-  // 🔗 Login com Google - CORRIGIDO PARA PRODUÇÃO
-  async function googleSignIn() {
-    const isProduction = window.location.hostname === 'mozranchu.vercel.app';
-    const redirectUrl = isProduction
-      ? 'https://mozranchu.vercel.app/'
-      : window.location.origin + '/';
+        // 🔗 Login com Google
+        async function googleSignIn() {
+            // Detecta ambiente (local ou produção)
+            const isProduction = window.location.hostname === 'mozranchu.vercel.app';
+            const redirectUrl = isProduction
+                ? 'https://mozranchu.vercel.app/'   // ✅ SEM espaços!
+                : window.location.origin + '/';
 
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: redirectUrl
-      }
-    });
-    
-    if (error) {
-      console.error('Erro Google:', error);
-      showNotification('❌ ' + error.message, 'error');
-    }
-  }
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: redirectUrl
+                }
+            });
 
-  document.getElementById('google-login').addEventListener('click', googleSignIn);
-  document.getElementById('google-register').addEventListener('click', googleSignIn);
+            if (error) {
+                console.error('Erro no login com Google:', error);
+                showNotification('❌ ' + (error.message || 'Erro ao conectar com Google'), 'error');
+            }
+        }
 
-  // 🎯 Verifica sessão existente
-  async function checkSession() {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
-      showNotification('🔐 Sessão ativa! Redirecionando...', 'info');
-      setTimeout(() => window.location.href = 'admin.html', 1000);
-    }
-  }
+        document.getElementById('google-login').addEventListener('click', googleSignIn);
+        document.getElementById('google-register').addEventListener('click', googleSignIn);
 
-  // Inicializa
-  document.addEventListener('DOMContentLoaded', checkSession);
-</script>
+        // 🎯 Verifica se já está logado
+        async function checkSession() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                showNotification('🔐 Sessão ativa! Redirecionando...', 'info');
+                setTimeout(() => window.location.href = 'admin.html', 1000);
+            }
+        }
+
+        // Inicializa ao carregar
+        document.addEventListener('DOMContentLoaded', checkSession);
+
+        // Esqueci minha senha (opcional: implementar depois)
+        document.getElementById('forgot-password').addEventListener('click', (e) => {
+            e.preventDefault();
+            const email = prompt('Digite seu email para redefinir a senha:');
+            if (email) {
+                supabase.auth.resetPasswordForEmail(email)
+                    .then(({ data, error }) => {
+                        if (error) {
+                            showNotification('❌ ' + error.message, 'error');
+                        } else {
+                            showNotification('📧 Link de redefinição enviado!', 'success');
+                        }
+                    });
+            }
+        });
+    </script>
 </body>
 </html>
