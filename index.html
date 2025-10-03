@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel de Administração - Mercado Inteligente</title>
-    <!-- Supabase JS SDK -->
+    <!-- Supabase JS SDK (versão estável) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
@@ -478,7 +478,7 @@
                     <h3 class="section-title">Ações Rápidas</h3>
                 </div>
                 <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-                    <button class="btn btn-primary" onclick="loadAllUsersTab()">👥 Ver Todos os Usuários</button>
+                    <button class="btn btn-primary" onclick="openTab('users')">👥 Ver Todos os Usuários</button>
                     <button class="btn btn-warning" onclick="openTab('moderation')">🛡️ Painel de Moderação</button>
                     <button class="btn btn-success" onclick="generateReport()">📈 Gerar Relatório</button>
                 </div>
@@ -661,62 +661,74 @@
     </div>
 
     <script>
-        // 🔑 CONFIGURE AQUI SUAS CREDENCIAIS DO SUPABASE
-        const supabaseUrl = 'https://SEU-PROJETO.supabase.co';
-        const supabaseAnonKey = 'SUA_ANON_KEY_AQUI';
-        
+        // 🔑 CONFIGURE SUAS CREDENCIAIS DO SUPABASE AQUI
+        const supabaseUrl = 'https://obvlxoxcdcyswdxxhhiv.supabase.co'; // ✅ SEM ESPAÇOS!
+        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9idmx4b3hjZGN5c3dkeHhoaGl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1MDQzNTEsImV4cCI6MjA3NTA4MDM1MX0.qvbLLRlw5TuHUirJLwJcTkqCWmqISOup7nofw08xQ8I';
+
+        // Inicializa o cliente do Supabase
         const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
 
-        // Estado global
         let currentUser = null;
 
-        // Verifica se o usuário está logado como admin
+        // Verifica se o usuário está logado e é admin
         async function checkAdminSession() {
-            const { data: { session } } = await supabase.auth.getSession();
-            
-            if (!session) {
-                alert('Você precisa estar logado como administrador.');
-                window.location.href = 'https://supabase.com/auth'; // ou sua página de login
+            try {
+                const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+                
+                if (sessionError || !session) {
+                    alert('Sessão inválida. Faça login novamente.');
+                    window.location.href = 'login.html';
+                    return false;
+                }
+
+                const { data: profile, error: profileError } = await supabase
+                    .from('profiles')
+                    .select('name, role')
+                    .eq('id', session.user.id)
+                    .single();
+
+                if (profileError || !profile || !['super_admin', 'admin'].includes(profile.role)) {
+                    alert('Acesso negado. Apenas administradores podem acessar este painel.');
+                    await supabase.auth.signOut();
+                    window.location.href = 'login.html';
+                    return false;
+                }
+
+                currentUser = { id: session.user.id, ...profile };
+                document.getElementById('admin-name').textContent = `👑 ${profile.name || 'Admin'}`;
+                return true;
+            } catch (err) {
+                console.error('Erro na verificação de sessão:', err);
+                alert('Erro ao verificar sessão. Tente novamente.');
+                window.location.href = 'login.html';
                 return false;
             }
-
-            // Busca o perfil do usuário
-            const { data: profile, error } = await supabase
-                .from('profiles')
-                .select('name, role')
-                .eq('id', session.user.id)
-                .single();
-
-            if (error || !profile || !['super_admin', 'admin'].includes(profile.role)) {
-                alert('Acesso negado. Apenas administradores podem acessar este painel.');
-                await supabase.auth.signOut();
-                return false;
-            }
-
-            currentUser = { id: session.user.id, ...profile };
-            document.getElementById('admin-name').textContent = `👑 ${profile.name || 'Admin'}`;
-            return true;
         }
 
-        // Funções de navegação
+        // Navegação entre abas
         function openTab(tabId) {
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-            document.querySelector(`.nav-link[data-tab="${tabId}"]`).classList.add('active');
+            const tabLink = document.querySelector(`.nav-link[data-tab="${tabId}"]`);
+            if (tabLink) tabLink.classList.add('active');
             
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
+            const tabContent = document.getElementById(tabId);
+            if (tabContent) tabContent.classList.add('active');
             
-            document.getElementById('page-title').textContent = 
-                document.querySelector(`.nav-link[data-tab="${tabId}"]`).textContent.trim();
+            const title = tabLink ? tabLink.textContent.trim() : 'Dashboard';
+            document.getElementById('page-title').textContent = title;
             
-            // Carrega dados da aba
-            if (tabId === 'dashboard') loadDashboardData();
-            else if (tabId === 'users') loadAllUsers();
-            else if (tabId === 'sales') loadSalesData();
-            else if (tabId === 'purchases') loadPurchasesData();
-            else if (tabId === 'moderation') loadModerationData();
+            // Carregar dados específicos da aba
+            switch(tabId) {
+                case 'dashboard': loadDashboardData(); break;
+                case 'users': loadAllUsers(); break;
+                case 'sales': loadSalesData(); break;
+                case 'purchases': loadPurchasesData(); break;
+                case 'moderation': loadModerationData(); break;
+            }
         }
 
+        // Eventos de navegação
         document.querySelectorAll('.nav-link').forEach(link => {
             link.addEventListener('click', function(e) {
                 e.preventDefault();
@@ -724,72 +736,62 @@
             });
         });
 
-        // Abas de usuários
+        // Abas de usuários (filtro - por simplicidade recarrega tudo)
         document.querySelectorAll('[data-user-tab]').forEach(tab => {
             tab.addEventListener('click', function() {
                 document.querySelectorAll('[data-user-tab]').forEach(t => t.classList.remove('active'));
                 this.classList.add('active');
-                // Aqui você pode filtrar por tipo (ex: role = 'buyer')
-                loadAllUsers(); // por simplicidade, recarrega todos
+                loadAllUsers();
             });
         });
 
         // 🔁 Carregar dados do dashboard
         async function loadDashboardData() {
             try {
-                // Total de usuários
                 const { count: totalUsers } = await supabase
                     .from('profiles')
                     .select('*', { count: 'exact', head: true });
 
-                // Total de vendas
                 const { count: totalSales } = await supabase
                     .from('sales')
                     .select('*', { count: 'exact', head: true });
 
-                // Receita total
                 const { data: revenueData } = await supabase
                     .from('sales')
                     .select('total')
-                    .gte('status', 'completed');
+                    .eq('status', 'completed');
 
                 const totalRevenue = revenueData.reduce((sum, sale) => sum + (sale.total || 0), 0);
-
-                // Usuários online (simulado - no mundo real, você teria uma tabela de sessões)
-                const activeNow = 0;
 
                 document.getElementById('total-users').textContent = totalUsers || '0';
                 document.getElementById('total-sales').textContent = totalSales || '0';
                 document.getElementById('total-revenue').textContent = `R$ ${totalRevenue.toFixed(2)}`;
-                document.getElementById('active-now').textContent = activeNow;
+                document.getElementById('active-now').textContent = '0'; // Simulado
 
-                // Atividade recente (últimas 3 vendas)
+                // Atividade recente
                 const { data: recentSales } = await supabase
                     .from('sales')
                     .select('buyer_id, seller_id, total, created_at')
                     .order('created_at', { ascending: false })
                     .limit(3);
 
-                if (recentSales && recentSales.length > 0) {
+                if (recentSales?.length) {
                     const activityHtml = recentSales.map(sale => 
                         `<p style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); color: var(--text-secondary);">
-                            Nova venda: R$ ${sale.total.toFixed(2)} • ${new Date(sale.created_at).toLocaleDateString()}
+                            Nova venda: R$ ${sale.total?.toFixed(2) || '0,00'} • ${new Date(sale.created_at).toLocaleDateString('pt-BR')}
                         </p>`
                     ).join('');
                     document.getElementById('recent-activity').innerHTML = activityHtml;
                 } else {
-                    document.getElementById('recent-activity').innerHTML = 
-                        '<p style="color: var(--text-muted);">Nenhuma atividade recente.</p>';
+                    document.getElementById('recent-activity').innerHTML = '<p style="color: var(--text-muted);">Nenhuma atividade recente.</p>';
                 }
-
             } catch (error) {
                 console.error('Erro no dashboard:', error);
-                document.getElementById('recent-activity').innerHTML = 
-                    '<p style="color: var(--red);">Erro ao carregar dados</p>';
+                document.getElementById('recent-activity').innerHTML = '<p style="color: var(--red);">Erro ao carregar dados</p>';
             }
         }
 
-        // 👥 Carregar usuários
+        // 👥 Carregar todos os usuários
         async function loadAllUsers() {
             try {
                 const { data, error } = await supabase
@@ -799,33 +801,33 @@
 
                 if (error) throw error;
 
+                // Atualiza select do modal
+                const userSelect = document.getElementById('ban-user-select');
+                userSelect.innerHTML = '<option value="">Selecione um usuário</option>';
+                (data || []).forEach(user => {
+                    if (user.status !== 'banned') {
+                        const opt = document.createElement('option');
+                        opt.value = user.id;
+                        opt.textContent = `${user.name || 'Sem nome'} (${user.email})`;
+                        userSelect.appendChild(opt);
+                    }
+                });
+
+                // Tabela
                 if (!data || data.length === 0) {
                     document.getElementById('users-table-body').innerHTML = 
                         '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);">Nenhum usuário encontrado</td></tr>';
                     return;
                 }
 
-                // Preenche o select do modal de banimento
-                const userSelect = document.getElementById('ban-user-select');
-                userSelect.innerHTML = '<option value="">Selecione um usuário</option>';
-                data.forEach(user => {
-                    if (user.status !== 'banned') {
-                        const option = document.createElement('option');
-                        option.value = user.id;
-                        option.textContent = `${user.name || 'Sem nome'} (${user.email})`;
-                        userSelect.appendChild(option);
-                    }
-                });
-
-                // Tabela de usuários
                 const rows = data.map(user => `
                     <tr>
                         <td>${user.id.substring(0, 8)}</td>
                         <td>${user.name || '—'}</td>
                         <td>${user.email}</td>
-                        <td>${user.role}</td>
-                        <td><span class="status-${user.status === 'active' ? 'active' : 'banned'}">${user.status}</span></td>
-                        <td>${new Date(user.created_at).toLocaleDateString()}</td>
+                        <td>${user.role || 'user'}</td>
+                        <td><span class="status-${user.status === 'active' ? 'active' : 'banned'}">${user.status || 'active'}</span></td>
+                        <td>${new Date(user.created_at).toLocaleDateString('pt-BR')}</td>
                         <td>
                             <button class="btn btn-sm btn-primary" onclick="viewUser('${user.id}')">👁️</button>
                             ${user.status !== 'banned' ? 
@@ -837,7 +839,6 @@
                 `).join('');
 
                 document.getElementById('users-table-body').innerHTML = rows;
-
             } catch (error) {
                 console.error('Erro ao carregar usuários:', error);
                 document.getElementById('users-table-body').innerHTML = 
@@ -864,18 +865,17 @@
                 const rows = data.map(sale => `
                     <tr>
                         <td>V-${sale.id}</td>
-                        <td>${sale.seller_id.substring(0, 8)}</td>
-                        <td>${sale.buyer_id.substring(0, 8)}</td>
+                        <td>${sale.seller_id?.substring(0, 8) || '—'}</td>
+                        <td>${sale.buyer_id?.substring(0, 8) || '—'}</td>
                         <td>${Array.isArray(sale.products) ? sale.products.length : 'N/A'} item(s)</td>
                         <td>R$ ${sale.total?.toFixed(2) || '0,00'}</td>
-                        <td>${new Date(sale.created_at).toLocaleDateString()}</td>
-                        <td><span class="status-${sale.status === 'completed' ? 'active' : 'pending'}">${sale.status}</span></td>
+                        <td>${new Date(sale.created_at).toLocaleDateString('pt-BR')}</td>
+                        <td><span class="status-${sale.status === 'completed' ? 'active' : 'pending'}">${sale.status || 'pending'}</span></td>
                         <td><button class="btn btn-sm btn-primary">👁️</button></td>
                     </tr>
                 `).join('');
 
                 document.getElementById('sales-table-body').innerHTML = rows;
-
             } catch (error) {
                 console.error('Erro ao carregar vendas:', error);
                 document.getElementById('sales-table-body').innerHTML = 
@@ -883,30 +883,30 @@
             }
         }
 
-        // 🛒 Carregar compras (mesmo que vendas, mas invertido)
+        // 🛒 Carregar compras (mesma lógica que vendas por simplicidade)
         async function loadPurchasesData() {
-            loadSalesData(); // por simplicidade
+            loadSalesData();
         }
 
-        // 🛡️ Carregar moderação
+        // 🛡️ Moderação
         async function loadModerationData() {
             document.getElementById('reported-users').innerHTML = 
                 '<p style="color: var(--text-muted);">Nenhum usuário reportado no momento.</p>';
         }
 
-        // 📊 Gerar relatório
+        // 📊 Relatório
         function generateReport() {
-            alert('Relatório gerado com sucesso! (em um sistema real, exportaria CSV/PDF)');
+            alert('✅ Relatório gerado com sucesso!\n(Em produção, exportaria como CSV/PDF)');
         }
 
         // 👁️ Ver usuário
         function viewUser(userId) {
-            alert(`Visualizando perfil do usuário: ${userId}`);
+            alert(`Visualizando usuário ID: ${userId}`);
         }
 
-        // 🚫 Banir usuário (SIMULADO - em produção, use Edge Function)
+        // 🚫 Banir usuário
         async function banUser(userId) {
-            if (!confirm('Tem certeza que deseja banir este usuário?')) return;
+            if (!confirm('Tem certeza que deseja banir este usuário? Esta ação não pode ser desfeita.')) return;
 
             try {
                 const { error } = await supabase
@@ -916,11 +916,11 @@
 
                 if (error) throw error;
 
-                alert('Usuário banido com sucesso!');
+                alert('✅ Usuário banido com sucesso!');
                 loadAllUsers();
             } catch (error) {
-                console.error('Erro ao banir:', error);
-                alert('Erro ao banir usuário: ' + error.message);
+                console.error('Erro ao banir usuário:', error);
+                alert(`❌ Erro ao banir: ${error.message}`);
             }
         }
 
@@ -944,13 +944,11 @@
         // Formulário de banimento
         document.getElementById('ban-form')?.addEventListener('submit', async function(e) {
             e.preventDefault();
-            
             const userId = document.getElementById('ban-user-select').value;
             if (!userId) {
-                alert('Selecione um usuário.');
+                alert('⚠️ Selecione um usuário.');
                 return;
             }
-
             banUser(userId);
             closeModal('ban-modal');
         });
@@ -958,7 +956,7 @@
         // Sair
         async function logout() {
             await supabase.auth.signOut();
-            window.location.reload();
+            window.location.href = 'login.html';
         }
 
         // Inicialização
