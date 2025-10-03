@@ -426,7 +426,7 @@
                 if (error) throw error;
                 
                 showNotification('✅ Login realizado!', 'success');
-                setTimeout(() => window.location.href = 'admin.html', 1000);
+                setTimeout(() => window.location.href = 'https://mozranchu.vercel.app', 1000);
             } catch (err) {
                 showNotification('❌ ' + (err.message || 'Erro ao fazer login'), 'error');
             } finally {
